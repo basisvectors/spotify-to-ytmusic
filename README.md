@@ -1,7 +1,7 @@
 # Moving from Spotify to YTMusic
 
 
-```(¯`·._.··¸.-~*´¨¯¨`*·~-.𝓯𝓾𝓬𝓴 𝓼𝓹𝓸𝓽𝓲𝓯𝔂 𝓪𝓷𝓭 𝓯𝓾𝓬𝓴 𝓭𝓪𝓷𝓲𝓮𝓵 𝓮𝓴.-~*´¨¯¨`*·~-.¸··._.·´¯)```
+```𝓯𝓾𝓬𝓴 𝓼𝓹𝓸𝓽𝓲𝓯𝔂 𝓪𝓷𝓭 𝓯𝓾𝓬𝓴 𝓭𝓪𝓷𝓲𝓮𝓵 𝓮𝓴.```
 
 I already use youtube most of the time so it makes sense for me to move my listening history and library to youtube music instead.
 
