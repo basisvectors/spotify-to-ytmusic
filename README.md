@@ -5,7 +5,7 @@
 
 I already use youtube most of the time so it makes sense for me to move my listening history and library to youtube music instead.
 
-#Usage
+# Usage
 
 Request your data from spotify - listening history and extended listening history
 
@@ -23,6 +23,6 @@ ytmusicapi oauth
 
 Read the template code in SpotifyToYTMusic.ipynb notebook and customize according to your needs
 
-#TODO
+# TODO
 
 add scripts that convert entire playlists into YTMusic playlists and move all liked and followed artists to the YTMusic library.
