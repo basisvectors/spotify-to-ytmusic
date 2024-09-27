@@ -31,11 +31,11 @@ def search_for_album(ytmusic, album):
 
 
 def search_for_track(ytmusic, track):
-    search_query = f"{track['track']} {track['artist']}" if type(
+    search_query = f"{track['trackName']} {track['artistName']}" if type(
         track) == dict else track
     results = ytmusic.search(
         search_query, filter="songs", ignore_spelling=True)
-    return results[0]['videoId']
+    return results[0]['videoId'], track['trackUri']
 
 
 def uri_to_url(uri):
@@ -53,25 +53,52 @@ def channel_url(channel_id):
 
 def get_vid_ids(ytmusic, playlist):
     vid_ids = []
+    uris = {}
     for item in tqdm(
             playlist,
             desc='Spotify->YouTube',
-            unit='track'
+            unit='track',
+            leave=False
     ):
-        yt_track = search_for_track(ytmusic, item['track']['trackUri'])
-        vid_ids.append(yt_track)
+        try:
+            yt_track, uri = search_for_track(ytmusic, item['track'])
+            uris[uri] = yt_track
+            vid_ids.append(yt_track)
+        except:
+            print(f"Error with {item['track']['trackUri']}")
+            print(f"Track: {item['track']['trackName']}")
+            raise
+    return vid_ids, uris
 
-    return vid_ids
+
+def prepare_playlist(playlist):
+    return [
+        {'track': {
+            "trackName": item['track'],
+            "artistName": item['artist'],
+            "trackUri": item['uri']
+        }}
+        for item in playlist
+    ]
 
 
-def convert_to_playlist(ytmusic, src_playlist, desc="", privacy="PRIVATE"):
-    vids = get_vid_ids(ytmusic, src_playlist)
+def convert_to_playlist(ytmusic: YTMusic, src_playlist, desc="", privacy="PRIVATE", from_liked_track_list=True, dry_run=False):
+    if from_liked_track_list:
+        
+        src_playlist['items'] = prepare_playlist(src_playlist['items'])
+
+    vids, uris = get_vid_ids(ytmusic, src_playlist['items'])
+
+    if dry_run:
+        return vids, uris
+
     ytplaylist = ytmusic.create_playlist(
         src_playlist['name'],
         description=src_playlist['description'] or desc,
         privacy_status=privacy
     )
-    return ytmusic.add_playlist_items(ytplaylist, vids)
+
+    return ytmusic.add_playlist_items(ytplaylist, vids), uris
 
 
 def get_all_artist_cids(ytmusic: YTMusic,
