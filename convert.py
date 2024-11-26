@@ -20,6 +20,29 @@ def search_for_artist_with_track_name(ytmusic: YTMusic, search_str: str):
         return None
 
 
+def verify_match(album, album_result):
+    title_match = album['album'].lower() == album_result['title'].lower()
+    artist_match = album['artist'].lower(
+    ) == album_result['artists'][0]['name'].lower()
+
+    if not title_match and not artist_match:
+        return False
+    if title_match and not artist_match:
+        print(
+            f"Title match but artist mismatch: {album['album']} {album['artist']}")
+        substring_search = album['artist'].lower() in album_result['artists'][0]['name'].lower()
+        if not substring_search:
+            print(f"Substring search failed: {album['artist']} {album_result['artists'][0]['name']}")
+            return False
+        return True
+    if not title_match and artist_match:
+        print(
+            f"Artist match but title mismatch: {album['album']} {album['artist']}")
+        return True
+    return True
+
+
+
 def search_for_album(ytmusic, album):
     search_query = f"{album['album']}"
     if album['artist'] != "Various Artists":
@@ -27,7 +50,23 @@ def search_for_album(ytmusic, album):
 
     results = ytmusic.search(
         search_query, filter="albums", ignore_spelling=True)
-    return results[0]['playlistId']
+
+    if len(results) == 0:
+        print(f"Could not find {album['album']} {album['artist']}")
+        return None
+
+    matches = []
+    for res in results:
+        if verify_match(album, res):
+            matches.append(res)
+            break
+
+    if len(matches) == 0:
+
+        print(f"results: {results}")
+        raise Exception(f"Could not match {album['album']} {album['artist']}")
+
+    return matches[0]['playlistId']
 
 
 def search_for_track(ytmusic, track):
@@ -65,9 +104,10 @@ def get_vid_ids(ytmusic, playlist):
             uris[uri] = yt_track
             vid_ids.append(yt_track)
         except:
-            print(f"Error with {item['track']['trackUri']}")
-            print(f"Track: {item['track']['trackName']}")
-            raise
+            print(
+                f"Error with {item['track']['trackName']} {item['track']['artistName']}")
+            continue
+
     return vid_ids, uris
 
 
@@ -82,15 +122,20 @@ def prepare_playlist(playlist):
     ]
 
 
-def convert_to_playlist(ytmusic: YTMusic, src_playlist, desc="", privacy="PRIVATE", from_liked_track_list=True, dry_run=False):
-    if from_liked_track_list:
-        
-        src_playlist['items'] = prepare_playlist(src_playlist['items'])
+def convert_to_playlist(ytmusic: YTMusic, src_playlist, desc="", privacy="PRIVATE", from_liked_track_list=True, dry_run=False, wet_run_data=None):
+    vids, uris = None, None
 
-    vids, uris = get_vid_ids(ytmusic, src_playlist['items'])
+    if wet_run_data is None:
+        if from_liked_track_list:
+            src_playlist['items'] = prepare_playlist(src_playlist['items'])
+        vids, uris = get_vid_ids(ytmusic, src_playlist['items'])
 
-    if dry_run:
-        return vids, uris
+        if dry_run:
+            return vids, uris
+
+    if wet_run_data is not None:
+        # yes i know this should be in a separate function im lazy and no
+        vids, uris = wet_run_data
 
     ytplaylist = ytmusic.create_playlist(
         src_playlist['name'],
